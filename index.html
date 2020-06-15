@@ -63,9 +63,7 @@
             download("map.sql", query)
         };
         fr.readAsText(selectedFile)
-
-        event.preventDefault()
-        return false;
+        return true;
     }
 
     function download(filename, text) {
