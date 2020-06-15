@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<style>
+
+</style>
+
+<body>
+    <form action="" onsubmit="generate(event)">
+        <label for="region">Region: </label>
+        <input type="number" name="region" id="region" value="1" required>
+
+        <br><label for="global-x">Global X: </label>
+        <input type="number" name="global-x" id="global-x" value="0" required>
+
+        <br><label for="global-y">Global Y: </label>
+        <input type="number" name="global-y" id="global-y" value="0" required>
+
+        <br><label for="size-x">Size X: </label>
+        <input type="number" name="size-x" id="size-x" value="100" required>
+
+        <br><label for="size-y">Size Y: </label>
+        <input type="number" name="size-y" id="size-y" value="100" required>
+
+        <br><input type="file" id="file" name="filename" required>
+
+        <input type="submit" value="Generate">
+    </form>
+</body>
+
+<script type="application/javascript">
+    function generate(event) {
+        const region = document.getElementById('region').value;
+        const globalX = document.getElementById('global-x').value;
+        const globalY = document.getElementById('global-y').value;
+        const sizeX = document.getElementById('size-x').value;
+        const sizeY = document.getElementById('size-y').value;
+        const selectedFile = document.getElementById('file').files[0];
+
+        fr = new FileReader();
+        fr.onload = function () {
+            const text = fr.result;
+            const data = JSON.parse(text);
+
+            let query = "INSERT INTO \"Map\"\n\t(region_id, x_coord, y_coord, width, height, bg_data, obj_data)\nVALUES\n\t("
+                + region + ", " + globalX + ", " + globalY + ", " + sizeX + ", " + sizeY + ', ';
+
+            let array = data["layers"][0]["data"];
+            let format = JSON.stringify(array.reduce((rows, key, index) => (index % sizeX == 0 ? rows.push([key])
+                : rows[rows.length - 1].push(key)) && rows, []));
+
+            format = format.replace(/1186/g, '0');
+            format = format.replace(/996/g, '2');
+            format = format.replace(/1188/g, '3');
+            format = format.replace(/1572/g, '4');
+            
+            query += "\'" + format + "\', \'[]\')\n;";
+
+            download("map.sql", query)
+        };
+        fr.readAsText(selectedFile)
+
+        event.preventDefault()
+        return false;
+    }
+
+    function download(filename, text) {
+        let element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+
+</script>
+
+</html>
